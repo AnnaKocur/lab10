@@ -38,12 +38,17 @@ async function main() {
   /* =========================
      2. Użytkownik (Auth.js)
      ========================= */
-  const user = await prisma.user.create({
-    data: {
-      email: "test@example.com",
-      name: "Jan Testowy",
+    const user = await prisma.user.upsert({
+    where: {
+        email: "test@example.com",
     },
-  });
+    update: {},
+    create: {
+        email: "test@example.com",
+        name: "Jan Testowy",
+    },
+    });
+
 
   /* =========================
      3. Koszyk

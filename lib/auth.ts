@@ -10,6 +10,11 @@ export const {
   signOut,
 } = NextAuth({
   adapter: PrismaAdapter(prisma),
+
+  // 🔑 WYMAGANE W AUTH.JS v5
+  secret: process.env.AUTH_SECRET,
+  trustHost: true,
+
   providers: [
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID!,
