@@ -1,0 +1,11 @@
+[
+  {
+    "code": "CPU001",
+    "name": "Procesor i5",
+    "description": "Intel Core i5",
+    "price": 999.99,
+    "stock": 10,
+    "imagePath": "/images/cpu.png",
+    "category": "Procesory"
+  }
+]
