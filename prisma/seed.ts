@@ -20,8 +20,10 @@ async function main() {
       create: { name: item.category },
     });
 
-    await prisma.product.create({
-      data: {
+    await prisma.product.upsert({
+      where: { code: item.code },
+      update: {},
+      create: {
         code: item.code,
         name: item.name,
         description: item.description,
@@ -34,13 +36,12 @@ async function main() {
   }
 
   /* =========================
-     2. Użytkownik
+     2. Użytkownik (Auth.js)
      ========================= */
   const user = await prisma.user.create({
     data: {
       email: "test@example.com",
       name: "Jan Testowy",
-      password: "hashed-password",
     },
   });
 
@@ -76,27 +77,27 @@ async function main() {
   ] as const;
 
   for (let i = 0; i < orderStatuses.length; i++) {
+    if (!firstProduct) continue;
+
     const order = await prisma.order.create({
       data: {
         orderNumber: `ORDER-2025-${i + 1}`,
         status: orderStatuses[i],
-        totalAmount: 1999.99,
+        totalAmount: firstProduct.price,
         userId: user.id,
       },
     });
 
-    if (firstProduct) {
-      await prisma.orderItem.create({
-        data: {
-          orderId: order.id,
-          productId: firstProduct.id,
-          quantity: 1,
-          price: firstProduct.price,
-          productName: firstProduct.name,
-          productCode: firstProduct.code,
-        },
-      });
-    }
+    await prisma.orderItem.create({
+      data: {
+        orderId: order.id,
+        productId: firstProduct.id,
+        quantity: 1,
+        price: firstProduct.price,
+        productName: firstProduct.name,
+        productCode: firstProduct.code,
+      },
+    });
   }
 
   console.log("✅ Full seeding zakończony (Task 8.3)");
