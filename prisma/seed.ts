@@ -6,8 +6,11 @@ import path from "path";
 const prisma = new PrismaClient();
 
 async function main() {
-    const dataPath = path.resolve("data", "data.json");
-    const rawData = fs.readFileSync(dataPath, "utf-8");
+  /* =========================
+     1. Produkty + Kategorie
+     ========================= */
+  const dataPath = path.resolve("data", "data.json");
+  const rawData = fs.readFileSync(dataPath, "utf-8");
   const products = JSON.parse(rawData);
 
   for (const item of products) {
@@ -30,12 +33,78 @@ async function main() {
     });
   }
 
-  console.log("✅ Seeding zakończony");
+  /* =========================
+     2. Użytkownik
+     ========================= */
+  const user = await prisma.user.create({
+    data: {
+      email: "test@example.com",
+      name: "Jan Testowy",
+      password: "hashed-password",
+    },
+  });
+
+  /* =========================
+     3. Koszyk
+     ========================= */
+  const cart = await prisma.cart.create({
+    data: {
+      userId: user.id,
+    },
+  });
+
+  const firstProduct = await prisma.product.findFirst();
+
+  if (firstProduct) {
+    await prisma.cartItem.create({
+      data: {
+        cartId: cart.id,
+        productId: firstProduct.id,
+        quantity: 2,
+      },
+    });
+  }
+
+  /* =========================
+     4. Zamówienia (4 szt.)
+     ========================= */
+  const orderStatuses = [
+    "DELIVERED",
+    "DELIVERED",
+    "CANCELLED",
+    "SHIPPED",
+  ] as const;
+
+  for (let i = 0; i < orderStatuses.length; i++) {
+    const order = await prisma.order.create({
+      data: {
+        orderNumber: `ORDER-2025-${i + 1}`,
+        status: orderStatuses[i],
+        totalAmount: 1999.99,
+        userId: user.id,
+      },
+    });
+
+    if (firstProduct) {
+      await prisma.orderItem.create({
+        data: {
+          orderId: order.id,
+          productId: firstProduct.id,
+          quantity: 1,
+          price: firstProduct.price,
+          productName: firstProduct.name,
+          productCode: firstProduct.code,
+        },
+      });
+    }
+  }
+
+  console.log("✅ Full seeding zakończony (Task 8.3)");
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error("❌ Seed error:", e);
     process.exit(1);
   })
   .finally(async () => {
